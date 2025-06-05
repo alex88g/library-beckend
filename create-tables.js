@@ -1,17 +1,14 @@
-// create-tables.js
-require('dotenv').config();
-const mysql = require('mysql2/promise');
+require("dotenv").config();
+const db = require("./db");
 
-const createAndSeedDatabase = async () => {
-  const connection = await mysql.createConnection(process.env.DATABASE_URL);
+const run = async () => {
+  const queries = [
+    `DROP TABLE IF EXISTS reviews`,
+    `DROP TABLE IF EXISTS loans`,
+    `DROP TABLE IF EXISTS books`,
+    `DROP TABLE IF EXISTS users`,
 
-  const sql = `
-    DROP TABLE IF EXISTS reviews;
-    DROP TABLE IF EXISTS loans;
-    DROP TABLE IF EXISTS books;
-    DROP TABLE IF EXISTS users;
-
-    CREATE TABLE users (
+    `CREATE TABLE users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
       email VARCHAR(255) UNIQUE NOT NULL,
@@ -19,9 +16,9 @@ const createAndSeedDatabase = async () => {
       role ENUM('user', 'admin') DEFAULT 'user',
       resetToken VARCHAR(255),
       resetTokenExpires DATETIME
-    );
+    )`,
 
-    CREATE TABLE books (
+    `CREATE TABLE books (
       id INT AUTO_INCREMENT PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
       author VARCHAR(255) NOT NULL,
@@ -40,9 +37,9 @@ const createAndSeedDatabase = async () => {
       createdBy INT,
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (createdBy) REFERENCES users(id) ON DELETE SET NULL
-    );
+    )`,
 
-    CREATE TABLE loans (
+    `CREATE TABLE loans (
       id INT AUTO_INCREMENT PRIMARY KEY,
       userId INT NOT NULL,
       bookId INT NOT NULL,
@@ -53,9 +50,9 @@ const createAndSeedDatabase = async () => {
       price DECIMAL(6,2),
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
-    );
+    )`,
 
-    CREATE TABLE reviews (
+    `CREATE TABLE reviews (
       id INT AUTO_INCREMENT PRIMARY KEY,
       bookId INT NOT NULL,
       userId INT NOT NULL,
@@ -65,21 +62,27 @@ const createAndSeedDatabase = async () => {
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
-    );
+    )`,
 
-    INSERT INTO users (username, password, email, role)
-    VALUES
-      ('admin', '$2a$10$A2jkIUyoIduXcd3mEf1uceTQ.lB2F4yk4H5ZnaZtrLBQPg1a1m.kK', 'admin@example.com', 'admin');
-  `;
+    `INSERT INTO users (username, password, email, role)
+     VALUES ('admin', '$2a$10$A2jkIUyoIduXcd3mEf1uceTQ.lB2F4yk4H5ZnaZtrLBQPg1a1m.kK', 'admin@example.com', 'admin')`
+  ];
+
+  let conn;
 
   try {
-    await connection.query(sql);
-    console.log("✅ Tabeller skapades och testdata är inlagd.");
+    conn = await db.getConnection(); // hämta anslutning från pool
+    for (const query of queries) {
+      console.log("➡️ Kör SQL-fråga...");
+      await conn.query(query);
+    }
+    console.log("✅ Alla tabeller skapade och testdata inlagd!");
   } catch (err) {
-    console.error("❌ Fel:", err.message);
+    console.error("❌ Error:", err.message);
   } finally {
-    await connection.end();
+    if (conn) conn.release(); // släpp anslutningen tillbaka till poolen
+    await db.end(); // stäng poolen
   }
 };
 
-createAndSeedDatabase();
+run();
