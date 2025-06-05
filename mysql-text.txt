@@ -1,0 +1,175 @@
+-- Radera gamla tabeller i rätt ordning
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS loans;
+DROP TABLE IF EXISTS books;
+DROP TABLE IF EXISTS users;
+
+-- Skapa och välj databas
+CREATE DATABASE IF NOT EXISTS library_db;
+USE library_db;
+
+-- USERS
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  username VARCHAR(255) UNIQUE NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role ENUM('user', 'admin') DEFAULT 'user',
+  resetToken VARCHAR(255),
+  resetTokenExpires DATETIME
+);
+
+-- BOOKS
+CREATE TABLE books (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  author VARCHAR(255) NOT NULL,
+  publishedDate DATE,
+  description TEXT,
+  isbn VARCHAR(20) UNIQUE,
+  publisher VARCHAR(255),
+  genre VARCHAR(100),
+  language VARCHAR(50),
+  pages INT,
+  coverUrl TEXT,
+  loanPrice DECIMAL(6,2) DEFAULT 0.00,
+  availability ENUM('tillgänglig', 'utlånad', 'reserverad') DEFAULT 'tillgänglig',
+  format ENUM('inbunden', 'pocket', 'e-bok', 'ljudbok') DEFAULT 'inbunden',
+  location VARCHAR(100),
+  createdBy INT,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (createdBy) REFERENCES users(id) ON DELETE SET NULL
+);
+
+-- LOANS
+CREATE TABLE loans (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  userId INT NOT NULL,
+  bookId INT NOT NULL,
+  loanDate DATE NOT NULL,
+  dueDate DATE,
+  renewedAt DATE,
+  returnedAt DATE,
+  price DECIMAL(6,2),
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
+  FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
+);
+
+-- REVIEWS
+CREATE TABLE reviews (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  bookId INT NOT NULL,
+  userId INT NOT NULL,
+  rating INT CHECK (rating BETWEEN 1 AND 5),
+  comment TEXT,
+  createdAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+  updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE,
+  FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
+);
+
+-- Skapa admin
+INSERT INTO users (username, password, email, role)
+VALUES (
+  'admin',
+  '$2a$10$A2jkIUyoIduXcd3mEf1uceTQ.lB2F4yk4H5ZnaZtrLBQPg1a1m.kK',
+  'admin@example.com',
+  'admin'
+);
+
+-- Skapa vanlig användare för test
+INSERT INTO users (username, password, email, role)
+VALUES (
+  'testuser',
+  '$2a$10$A2jkIUyoIduXcd3mEf1uceTQ.lB2F4yk4H5ZnaZtrLBQPg1a1m.kK',
+  'user@example.com',
+  'user'
+);
+
+-- Skapa böcker
+INSERT INTO books (
+  title, author, publishedDate, description, isbn, publisher, genre, language,
+  pages, coverUrl, loanPrice, availability, format, location, createdBy
+) VALUES
+(
+  'Sagan om ringen', 'J.R.R. Tolkien', '1954-07-29',
+  'Första delen i den episka trilogin.',
+  '9789113078977', 'Norstedts', 'Fantasy', 'Svenska',
+  423, 'https://dez1v4fbcawql.cloudfront.net/product_thumb/946/13992369/6784e078a932a.jpg', 20.00, 'tillgänglig', 'inbunden', 'F1', 1
+),
+(
+  '1984', 'George Orwell', '1949-06-08',
+  'Dystopisk framtidsvision.',
+  '9780451524935', 'Secker & Warburg', 'Dystopi', 'Engelska',
+  328, 'https://m.media-amazon.com/images/I/61HkdyBpKOL._SL1200_.jpg', 15.00, 'tillgänglig', 'pocket', 'F2', 1
+),
+(
+  'Den lille prinsen', 'Antoine de Saint Exupéry', '1943-04-06',
+  'En filosofisk barnbok för alla åldrar.',
+  '9789174295062', 'Bonnier', 'Barn', 'Svenska',
+  96, 'https://m.media-amazon.com/images/I/710nS9M05SL._SL1500_.jpg', 10.00, 'tillgänglig', 'pocket', 'F3', 1
+),
+(
+  'Harry Potter och De vises sten', 'J.K. Rowling', '1997-06-26',
+  'Första boken om Harry Potter.',
+  '9789129697706', 'Rabén & Sjögren', 'Fantasy', 'Svenska',
+  309, 'https://s1.adlibris.com/images/69655964/harry-potter-och-de-vises-sten-jubileumsutgava-av-minalima.jpg', 25.00, 'tillgänglig', 'inbunden', 'F4', 1
+),
+(
+  'Fahrenheit 451', 'Ray Bradbury', '1953-10-19',
+  'Böcker är förbjudna i framtiden.',
+  '9781451673319', 'Ballantine Books', 'Sci-fi', 'Engelska',
+  194, 'https://m.media-amazon.com/images/I/61sKsbPb5GL._SL1500_.jpg', 12.00, 'tillgänglig', 'e-bok', 'F5', 1
+);
+
+-- Testlån (lånar bok 1 till användare 2)
+INSERT INTO loans (userId, bookId, loanDate, dueDate, price)
+VALUES (
+  2,
+  1,
+  CURDATE(),
+  DATE_ADD(CURDATE(), INTERVAL 14 DAY),
+  59.00
+);
+
+-- Recensioner
+INSERT INTO reviews (bookId, userId, rating, comment) VALUES
+(1, 2, 5, 'En fantastisk värld och djup berättelse!'),
+(2, 2, 4, 'Tankeväckande och fortfarande aktuell.');
+
+-- Fråga: Visa alla böcker och vem som har lånat (om någon)
+SELECT
+  books.*,
+  users.username AS borrowedBy
+FROM books
+LEFT JOIN loans ON books.id = loans.bookId AND loans.returnedAt IS NULL
+LEFT JOIN users ON loans.userId = users.id;
+
+SELECT loans.*,
+       books.title,
+       books.coverUrl,
+       books.description,
+       books.author,
+       books.genre,
+       books.loanPrice
+FROM loans
+JOIN books ON loans.bookId = books.id
+WHERE loans.userId = 3 AND loans.returnedAt IS NULL
+ORDER BY loans.dueDate ASC;
+
+
+
+-- SELECT-frågor för att visa all data
+SELECT * FROM users;
+SELECT * FROM books;
+SELECT * FROM loans;
+SELECT * FROM reviews;
+SELECT id, username, role FROM users;
+SELECT username, LENGTH(password) AS password_length FROM users;
+
+
+DELETE FROM users WHERE username = 'admin';
+
+DELETE FROM users WHERE email = 'admin@example.com';
+-- eller
+DELETE FROM users WHERE id = 5;
