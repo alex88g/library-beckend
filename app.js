@@ -12,7 +12,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://library-frontend-omega-three.vercel.app'
+  'https://library-frontend-omega-three.vercel.app' // ✅ rätt domän
 ];
 
 app.use(cors({
