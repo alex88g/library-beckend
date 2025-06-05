@@ -12,7 +12,7 @@ const app = express();
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://library-frontend-h2hodypym-alexs-projects-6727ece4.vercel.app' // ← ändra till din Vercel-domän vid behov
+  'https://library-frontend-omega-three.vercel.app'
 ];
 
 app.use(cors({
