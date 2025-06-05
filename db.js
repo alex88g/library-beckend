@@ -1,19 +1,20 @@
-const mysql = require("mysql2");
-require("dotenv").config();
+// db.js
+require('dotenv').config();
+const mysql = require('mysql2/promise');
 
-const connection = mysql.createConnection({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-});
+let connection;
 
-connection.connect((err) => {
-  if (err) {
-    console.error("Database connection failed:", err);
-    return;
+const getConnection = async () => {
+  if (!connection) {
+    try {
+      connection = await mysql.createConnection(process.env.DATABASE_URL);
+      console.log("✅ Ansluten till MySQL via Railway");
+    } catch (err) {
+      console.error("❌ Kunde inte ansluta till databasen:", err.message);
+      throw err;
+    }
   }
-  console.log("Connected to MySQL database");
-});
+  return connection;
+};
 
-module.exports = connection;
+module.exports = getConnection;
