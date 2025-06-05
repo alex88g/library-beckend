@@ -7,7 +7,6 @@ const run = async () => {
     `DROP TABLE IF EXISTS loans`,
     `DROP TABLE IF EXISTS books`,
     `DROP TABLE IF EXISTS users`,
-
     `CREATE TABLE users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
@@ -17,7 +16,6 @@ const run = async () => {
       resetToken VARCHAR(255),
       resetTokenExpires DATETIME
     )`,
-
     `CREATE TABLE books (
       id INT AUTO_INCREMENT PRIMARY KEY,
       title VARCHAR(255) NOT NULL,
@@ -38,7 +36,6 @@ const run = async () => {
       updatedAt DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
       FOREIGN KEY (createdBy) REFERENCES users(id) ON DELETE SET NULL
     )`,
-
     `CREATE TABLE loans (
       id INT AUTO_INCREMENT PRIMARY KEY,
       userId INT NOT NULL,
@@ -51,7 +48,6 @@ const run = async () => {
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE,
       FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE
     )`,
-
     `CREATE TABLE reviews (
       id INT AUTO_INCREMENT PRIMARY KEY,
       bookId INT NOT NULL,
@@ -63,25 +59,23 @@ const run = async () => {
       FOREIGN KEY (bookId) REFERENCES books(id) ON DELETE CASCADE,
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
     )`,
-
     `INSERT INTO users (username, password, email, role)
      VALUES ('admin', '$2a$10$A2jkIUyoIduXcd3mEf1uceTQ.lB2F4yk4H5ZnaZtrLBQPg1a1m.kK', 'admin@example.com', 'admin')`
   ];
 
   let conn;
-
   try {
-    conn = await db.getConnection(); // hämta anslutning från pool
+    conn = await db.getConnection();
     for (const query of queries) {
-      console.log("➡️ Kör SQL-fråga...");
+      console.log("Kör SQL-fråga...");
       await conn.query(query);
     }
-    console.log("✅ Alla tabeller skapade och testdata inlagd!");
+    console.log("Alla tabeller skapade och testdata inlagd!");
   } catch (err) {
-    console.error("❌ Error:", err.message);
+    console.error("Error:", err.message);
   } finally {
-    if (conn) conn.release(); // släpp anslutningen tillbaka till poolen
-    await db.end(); // stäng poolen
+    if (conn) conn.release();
+    await db.end();
   }
 };
 
