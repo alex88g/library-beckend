@@ -3,10 +3,7 @@ const db = require("./db");
 
 const run = async () => {
   const queries = [
-    `DROP TABLE IF EXISTS reviews`,
-    `DROP TABLE IF EXISTS loans`,
-    `DROP TABLE IF EXISTS books`,
-    `DROP TABLE IF EXISTS users`,
+    
     `CREATE TABLE users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
