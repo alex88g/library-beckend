@@ -15,19 +15,14 @@ const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app',
-  'https://library-frontend-xybl.vercel.app' // ← din aktiva Vercel-URL
+  'https://library-frontend-xybl.vercel.app'
 ];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS: ' + origin));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true
 }));
+
 
 // Middleware
 app.use(express.json());
