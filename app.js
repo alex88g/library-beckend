@@ -18,14 +18,10 @@ const allowedOrigins = [
   'https://library-frontend-bice.vercel.app'
 ];
 
-// CORS-config
+// CORS-inställningar
 const corsOptions = {
   origin: function (origin, callback) {
-    if (
-      !origin ||
-      origin.startsWith('http://localhost') ||
-      /^https:\/\/library-frontend(-[\w-]+)?\.vercel\.app$/.test(origin)
-    ) {
+    if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       console.warn('❌ Blockerad CORS-origin:', origin);
@@ -37,20 +33,16 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-// 1. Preflight-fix först
-app.options("*", cors(corsOptions));
+// Preflight fix (Node 22)
+app.options(/^\/.*$/, cors(corsOptions));
 
-// 2. CORS middleware
+// CORS middleware
 app.use(cors(corsOptions));
 
-// 3. Extra headers om Railway buggar
+// Extra headers (fallback)
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (
-    origin &&
-    (origin.startsWith("http://localhost") ||
-      /^https:\/\/library-frontend(-[\w-]+)?\.vercel\.app$/.test(origin))
-  ) {
+  if (allowedOrigins.includes(origin)) {
     res.setHeader("Access-Control-Allow-Origin", origin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
@@ -59,7 +51,6 @@ app.use((req, res, next) => {
   next();
 });
 
-// Övrigt
 app.use(express.json());
 
 app.get('/cors-test', (req, res) => {
@@ -77,17 +68,18 @@ app.use('/api/books', bookRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// Error hantering
+// Felfångare
 app.use((err, req, res, next) => {
   console.error('❌ Fel:', err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
+// 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Serverstart
+// Starta server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Servern kör på port ${PORT}`);
