@@ -9,7 +9,7 @@ const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
-// Tillåtna domäner
+// Tillåtna domäner (kan även användas i fallback om regex inte räcker)
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -22,7 +22,11 @@ const allowedOrigins = [
 // CORS-inställningar
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) {
+    if (
+      !origin ||
+      origin.startsWith('http://localhost') ||
+      /^https:\/\/library-frontend(-[\w-]+)?\.vercel\.app$/.test(origin)
+    ) {
       callback(null, true);
     } else {
       console.warn('❌ Blockerad CORS-origin:', origin);
@@ -36,24 +40,24 @@ const corsOptions = {
 
 // Middleware
 app.use(cors(corsOptions));
-app.options(/^\/.*$/, cors(corsOptions)); // fix för Node 22 och preflight
+app.options(/^\/.*$/, cors(corsOptions)); // stöd för preflight i Node 22+
 app.use(express.json());
 
-// Test-route för att kontrollera deploy
+// Test-route
 app.get('/cors-test', (req, res) => {
   res.json({
     origin: req.headers.origin,
-    message: 'CORS test route works!',
+    message: '✅ CORS test route works!',
   });
 });
 
-// Logga inkommande requests
+// Logg för varje inkommande request
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.path} | Origin: ${req.headers.origin}`);
   next();
 });
 
-// Routes
+// API-routes
 app.use('/api/auth', authRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/loans', loanRoutes);
@@ -65,7 +69,7 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// 404
+// 404 fallback
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
@@ -74,5 +78,5 @@ app.use((req, res) => {
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`✅ Servern körs på port ${PORT}`);
-  console.log('✅ Tillåtna origins:', allowedOrigins);
+  console.log('✅ Tillåtna origins:', allowedOrigins.join(', '));
 });
