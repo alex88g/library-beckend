@@ -10,10 +10,12 @@ const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
-// Tillåt CORS från lokala och deployade klienter
+// ✅ Tillåt både lokal och Vercel-frontend i CORS
 const allowedOrigins = [
   'http://localhost:5173',
-  'http://127.0.0.1:5173'
+  'http://127.0.0.1:5173',
+  'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app',
+  'https://library-frontend-xybl.vercel.app' // ← din aktiva Vercel-URL
 ];
 
 app.use(cors({
