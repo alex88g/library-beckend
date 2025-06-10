@@ -38,6 +38,14 @@ app.use(cors(corsOptions));
 app.options(/^\/.*$/, cors(corsOptions)); // fix för Node 22 och preflight
 app.use(express.json());
 
+// Test-route för att kontrollera deploy
+app.get('/cors-test', (req, res) => {
+  res.json({
+    origin: req.headers.origin,
+    message: 'CORS test route works!',
+  });
+});
+
 // Logga inkommande requests
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.path} | Origin: ${req.headers.origin}`);
