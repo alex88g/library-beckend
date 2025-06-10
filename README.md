@@ -70,13 +70,12 @@ PORT=5000
 DB_HOST=localhost
 DB_USER=root
 DB_PASSWORD=password
-DB_NAME=bookmate_db
+DB_NAME=name
 
 JWT_SECRET=your_jwt_secret
 EMAIL_USER=your_verified_brevo_email@example.com
 BREVO_API_KEY=your_brevo_api_key
 
-FRONTEND_URL=http://localhost:5173
 ADMIN_PASSWORD=your_admin_password
 ```
 

@@ -2,6 +2,14 @@
   "name": "library-backend",
   "version": "1.0.0",
   "description": "Digitalt bibliotek backend",
+  "homepage": "https://github.com/alex88g/library-backend#readme",
+  "bugs": {
+    "url": "https://github.com/alex88g/library-backend/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/alex88g/library-backend.git"
+  },
   "license": "ISC",
   "author": "",
   "type": "commonjs",
@@ -10,9 +18,6 @@
     "start": "node app.js",
     "dev": "nodemon app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "engines": {
-    "node": ">=18.0.0"
   },
   "dependencies": {
     "bcryptjs": "^3.0.2",
@@ -26,5 +31,8 @@
   },
   "devDependencies": {
     "nodemon": "^3.1.10"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }
