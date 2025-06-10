@@ -9,24 +9,23 @@ const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
-// Lista med tillåtna frontend URL:er
+// Tillåtna domäner
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
-  'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app',
+  'https://library-frontend.vercel.app',
   'https://library-frontend-xybl.vercel.app',
-  'https://library-frontend.vercel.app'
+  'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app'
 ];
 
-// CORS-konfiguration
+// CORS-inställningar
 const corsOptions = {
   origin: function (origin, callback) {
-    if (!origin) return callback(null, true); //curl
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
     } else {
       console.warn('❌ Blockerad CORS-origin:', origin);
-      return callback(new Error('Not allowed by CORS'));
+      callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
@@ -35,17 +34,15 @@ const corsOptions = {
 };
 
 // Middleware
-app.use(cors(corsOptions)); // aktivera CORS
-app.use(express.json()); // parse application/json
+app.use(cors(corsOptions));
+app.options(/^\/.*$/, cors(corsOptions)); // fix för Node 22 och preflight
+app.use(express.json());
 
-// Loggning
+// Logga inkommande requests
 app.use((req, res, next) => {
   console.log(`➡️ ${req.method} ${req.path} | Origin: ${req.headers.origin}`);
   next();
 });
-
-// Preflight fix för Node v22
-app.options(/^\/.*$/, cors(corsOptions));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -53,13 +50,13 @@ app.use('/api/books', bookRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// Felhantering
+// Felfångare
 app.use((err, req, res, next) => {
-  console.error('❌ Serverfel:', err.stack);
+  console.error('❌ Fel:', err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// 404 fallback
+// 404
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
