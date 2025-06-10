@@ -15,7 +15,8 @@ const allowedOrigins = [
   'http://127.0.0.1:5173',
   'https://library-frontend.vercel.app',
   'https://library-frontend-xybl.vercel.app',
-  'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app'
+  'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app',
+  'https://library-frontend-bice.vercel.app'
 ];
 
 // CORS-inställningar
