@@ -9,47 +9,43 @@ const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
-// Uppdaterad lista med tillåtna origin-domäner
+// Lista med tillåtna frontend URL:er
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'https://library-frontend-git-main-alexs-projects-6727ece4.vercel.app',
   'https://library-frontend-xybl.vercel.app',
-  'https://library-frontend.vercel.app' // Lägg till alla varianter av din frontend-URL
+  'https://library-frontend.vercel.app'
 ];
 
-// Förbättrad CORS-konfiguration
+// CORS-konfiguration
 const corsOptions = {
   origin: function (origin, callback) {
-    // Tillåt requests utan origin (t.ex. Postman, curl)
-    if (!origin) return callback(null, true);
-    
+    if (!origin) return callback(null, true); //curl
     if (allowedOrigins.includes(origin)) {
-      callback(null, true);
+      return callback(null, true);
     } else {
       console.warn('❌ Blockerad CORS-origin:', origin);
-      callback(new Error('Not allowed by CORS'));
+      return callback(new Error('Not allowed by CORS'));
     }
   },
   credentials: true,
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 };
 
-// Använd CORS-middleware
-app.use(cors(corsOptions));
+// Middleware
+app.use(cors(corsOptions)); // aktivera CORS
+app.use(express.json()); // parse application/json
 
-// Hantera preflight requests för alla routes
-app.options(/^\/.*$/, cors(corsOptions));
-
-// Middleware för att logga inkommande requests
+// Loggning
 app.use((req, res, next) => {
-  console.log(`Incoming ${req.method} request to ${req.path} from ${req.headers.origin}`);
+  console.log(`➡️ ${req.method} ${req.path} | Origin: ${req.headers.origin}`);
   next();
 });
 
-// Body parser middleware
-app.use(express.json());
+// Preflight fix för Node v22
+app.options(/^\/.*$/, cors(corsOptions));
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -57,20 +53,20 @@ app.use('/api/books', bookRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/reviews', reviewRoutes);
 
-// Felhanteringsmiddleware
+// Felhantering
 app.use((err, req, res, next) => {
-  console.error('❌ Server Error:', err.stack);
+  console.error('❌ Serverfel:', err.stack);
   res.status(500).json({ error: 'Internal Server Error' });
 });
 
-// 404 hantering
+// 404 fallback
 app.use((req, res) => {
   res.status(404).json({ error: 'Endpoint not found' });
 });
 
-// Start server
+// Starta server
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`✅ Server running on port ${PORT}`);
-  console.log('Tillåtna origins:', allowedOrigins);
+  console.log(`✅ Servern körs på port ${PORT}`);
+  console.log('✅ Tillåtna origins:', allowedOrigins);
 });
