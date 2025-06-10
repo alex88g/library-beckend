@@ -9,8 +9,6 @@ const reviewRoutes = require('./routes/reviewRoutes');
 
 const app = express();
 
-const port = process.env.PORT || 3000;
-
 const allowedOrigins = [
   'http://localhost:5173',
   'http://127.0.0.1:5173',
@@ -18,21 +16,19 @@ const allowedOrigins = [
   'https://library-frontend-xybl.vercel.app'
 ];
 
-const corsOptions = {
+app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
+      console.warn('❌ Blockerad CORS-origin:', origin);
       callback(new Error('Not allowed by CORS'));
     }
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
-};
+}));
 
-app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
+// Viktigt: Middleware efter CORS
 app.use(express.json());
 
 // Routes
@@ -42,15 +38,7 @@ app.use('/api/loans', loanRoutes);
 app.use('/api/reviews', reviewRoutes);
 
 // Start server
-app.get('/', (req, res) => {
-  res.send('🚀 API is running');
-});
-
-app.use((err, req, res, next) => {
-  console.error('🔥 Global error:', err.message);
-  res.status(500).json({ error: 'Server error', message: err.message });
-});
-
-app.listen(port, '0.0.0.0', () => {
-  console.log(`✅ Server running on http://0.0.0.0:${port}`);
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`✅ Server running on http://localhost:${PORT}`);
 });
