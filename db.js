@@ -12,4 +12,8 @@ const pool = mysql.createPool({
   queueLimit: 0,
 });
 
+pool.getConnection()
+  .then(() => console.log('✅ MySQL connected!'))
+  .catch(err => console.error('❌ MySQL connection error:', err.message));
+
 module.exports = pool;
